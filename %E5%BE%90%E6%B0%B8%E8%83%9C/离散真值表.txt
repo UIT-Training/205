@@ -1,0 +1,261 @@
+#include<stdio.h>
+#include<string.h>
+#define MAXSIZE 100
+
+char sum_in[MAXSIZE];   //存放你要输入的表达式的数组 
+char sum_out[MAXSIZE];  //将sum_in转化为后缀表达式的新数组 
+char sum_inn[MAXSIZE];  //用来输出 和sum_in内容一样 
+
+typedef char DataType;    //一个类型  说明DataType类型就是char 型 
+
+typedef struct            //结构体 
+{
+	int top;      //栈顶值
+	DataType elem[MAXSIZE];    //储存栈元素数组 
+ } Stack;
+ 
+DataType bian(Stack S);    ///变成优先级
+DataType ZH(Stack S);   //转化为后缀表达式 
+DataType JS(Stack S1,char a,char b);  //计算结果 
+DataType display(Stack S1);  //输出 
+
+
+ void Init_Stack(Stack &S)     //初始化栈
+ {
+    S.top=-1;
+ }
+ bool Stack_Empty(Stack S)     //判断栈是否为空 
+ {
+    if(S.top==-1)               //top=-1时栈空 
+        return true;
+	else
+	    return false;
+ }
+ bool Stack_Full(Stack S)      //判断栈是否满 
+ {
+ 	if(S.top==MAXSIZE-1)       //下标最大值为 MAXSIZE-1 
+        return true;
+    else
+        return false;
+ }
+ void Push(Stack &S,DataType elem)   //入栈 
+ {
+ 	if(!Stack_Full(S))            //如果栈没满 
+ 	{
+ 		S.top++;    
+ 		S.elem[S.top]=elem;	      //将elem存入栈结构中 
+	}
+	else
+	    printf("栈已满"); 
+ }
+ DataType Pop(Stack &S)         //出栈 
+ {
+ 	if(!Stack_Empty(S))             //若栈空，不允许操作 
+ 	    return S.elem[S.top--];
+ 	else
+ 	    printf("栈已空");
+ }
+ 
+ DataType GetTop(Stack S)        //获取栈顶元素 
+ {
+ 	if(!Stack_Empty(S))
+ 	{
+ 		return S.elem[S.top];    
+	}
+	else
+ 	    printf("栈中没有元素");
+ }
+ 
+ DataType bian(Stack S)    ///变成优先级
+ {
+ 	int i=0;
+ 	while (sum_in[i] != '\0')
+ 	{
+ 		//优先级依次升高  +或1  *且2  /非3 用数字表示 
+ 		if(sum_in[i]=='+')
+		{
+			sum_in[i]='1';	
+	    }
+	    if(sum_in[i]=='*')
+		{
+			sum_in[i]='2';	
+	    }
+	    if(sum_in[i]=='/')
+		{
+			sum_in[i]='3';	
+	    }
+	    i++;
+    }
+ }
+ 
+ DataType ZH(Stack S)   //转化为后缀表达式 
+ {
+ 	int i=0,j=0;
+ 	while(sum_in[i]!='\0')
+ 	{
+ 		//优先级依次升高  +或1  *且2  /非3 用数字表示 
+ 		switch(sum_in[i])
+		{
+			case'1':           // +
+			case'2':           // *
+			case'3':           //  /
+			{
+				if(!Stack_Empty(S))         //如果栈不空 
+				{
+					if(GetTop(S)>sum_in[i])       //比较优先级 字符123，栈顶元素（+或/或*）> sum_[i]
+					{
+						sum_out[j++]=GetTop(S);    //把栈顶元素放到数组sum_out中 
+						Pop(S);                    //将sum_in[i]出栈 ，丢掉 
+						if(!Stack_Empty(S))
+						{
+							if(GetTop(S)>sum_in[i])
+							{
+								sum_out[j++]=GetTop(S);
+								Pop(S);
+							}
+						}
+					}
+					Push(S,sum_in[i]);     //将 sum_in[i]入栈，保存 
+				}
+				else if(Stack_Empty(S))
+				{
+					Push(S,sum_in[i]);
+				}	    
+			}break;
+			case'(':
+				{
+					Push(S,sum_in[i]);
+			    	
+				}break;
+			case')':
+				{
+					while(GetTop(S)!='(')        //栈顶元素不是（ 
+					{
+						sum_out[j++]=GetTop(S);   //把栈顶元素放到数组sum_out中 
+						Pop(S);                   //出栈 
+					}
+					if(GetTop(S)=='(')
+					{
+						Pop(S);
+					}		
+				}break;
+			default:
+				{
+					sum_out[j++]=sum_in[i];	     //直接把sum_in[i]字符存到数组sum_out中 
+				}break;
+		} 
+		i++;    
+    }
+    while(!Stack_Empty(S))
+	{
+		sum_out[j++]=GetTop(S);
+		Pop(S);
+	}
+	printf("后缀表达式为：\n"); 
+	printf("%s\n\n",sum_out);
+ }
+ 
+ DataType JS(Stack S,char a,char b)
+ {
+ 	int i=0;
+ 	char value;   //表示结果 
+ 	char L1,L2;   //临时数组 用来取栈顶值 
+ 	while(sum_out[i]!='\0')
+ 	{
+		//优先级依次升高  +或1  *且2  /非3 用数字表示 
+		switch(sum_out[i])
+		{
+			case'1':         //  +号判断 
+				L1=GetTop(S);    //将栈顶元素赋值给l1 
+ 				Pop(S);
+ 				L2=GetTop(S);
+ 				Pop(S);
+ 				//L1=a;
+		    	//L2=b;
+				if(L1=='F'&&L2=='F')
+				{
+					value='F';
+				}
+				else
+					value='T';
+				break;
+			case'2':             //  *号判断 
+				L1=GetTop(S);
+ 				Pop(S);
+ 				L2=GetTop(S);
+ 				Pop(S);
+ 				//L1=a;
+		    	//L2=b;
+				if(L1=='T'&&L2=='T')
+					value='T';
+				else
+					value='F';
+				break;
+			case'3':            //  /号判断 
+				L1=GetTop(S);
+ 				Pop(S);
+				if(L1=='T')
+					value='F';
+				else
+					value='T';
+				break;
+			case'p':           
+				value=a;	   //将a的值付给 value 
+				break;	
+			case'q':
+			    value=b;		
+		}
+		Push(S,value);        //将value进站 
+		i++;	
+	}
+	return GetTop(S);         //返回栈顶元素 
+  }
+  
+ DataType display(Stack S)
+ {
+ 	printf("p               q                %s\n",sum_inn);
+ 	printf("F               F                %c\n",JS(S,'F','F'));
+ 	printf("F               T                %c\n",JS(S,'F','T'));
+ 	printf("T               F                %c\n",JS(S,'T','F'));
+ 	printf("T               T                %c\n",JS(S,'T','T'));
+ }
+ 
+ int main()
+ {
+ 	// /  非    + 或    *  且
+ 	Stack S;
+ 	int i=0;
+ 	char a;   //判断表达式是否正确 
+ 	printf("/  非    + 或    *  且\n");
+L:	printf("请正确输入表达式:\n"); 
+ 	scanf("%s",&sum_in); 
+ 	printf("\n");
+ 	while (sum_in[i] != '\0')
+ 	{
+ 		if(sum_in[i]!='('||sum_in[i]!=')')
+ 		{
+ 			a=sum_in[i];
+ 			i++;
+			if(sum_in[i]==a)    //判断是否有两个连续一样的字符 
+			{
+				goto L;
+			}
+		}
+		else
+		{
+			i++;
+		}
+    }
+    strcpy(sum_inn,sum_in);          //将sum_in拷贝到sum_inn中 
+ 	bian(S);
+ 	ZH(S);
+ 	display(S);
+ 	return 0;
+ }
+ 
+ 
+ 
+ 
+ 
+ 
+ 
